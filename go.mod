@@ -1,4 +1,4 @@
-module github.com/cockroachdb/copyist
+module github.com/cookieai-jar/copyist
 
 go 1.16
 
