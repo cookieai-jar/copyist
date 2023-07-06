@@ -151,6 +151,11 @@ func (c *proxyConn) PrepareContext(ctx context.Context, query string) (driver.St
 func (c *proxyConn) QueryContext(
 	ctx context.Context, query string, args []driver.NamedValue,
 ) (driver.Rows, error) {
+	// If ConnQuery is disabled, return driver.ErrSkip to indicate that the driver should try other
+	// methods (e.g. ConnPrepare).
+	if IsConnQueryDisabled() {
+		return nil, driver.ErrSkip
+	}
 	if IsRecording() {
 		var rows driver.Rows
 		var err error
