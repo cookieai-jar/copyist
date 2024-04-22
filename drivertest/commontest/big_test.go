@@ -19,9 +19,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cockroachdb/copyist"
 	"github.com/fortytw2/leaktest"
 	"github.com/stretchr/testify/require"
+
+	copyist "github.com/cookieai-jar/copyist"
 )
 
 // TestBigRecording tests that copyist works with large recordings, and also

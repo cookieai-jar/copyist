@@ -16,25 +16,26 @@ package pgxtest_test
 
 import (
 	"database/sql"
-	"github.com/cockroachdb/copyist"
+	"testing"
+
 	"github.com/fortytw2/leaktest"
 	"github.com/jackc/pgconn"
 	"github.com/stretchr/testify/require"
-	"testing"
 
-	"github.com/cockroachdb/copyist/drivertest/commontest"
 	_ "github.com/jackc/pgx/v4/stdlib"
+
+	"github.com/cookieai-jar/copyist"
+	"github.com/cookieai-jar/copyist/drivertest/commontest"
 )
 
 // TestMain runs all PGX driver-specific tests. To use:
 //
-//   1. Run the tests with the "-record" command-line flag. This will run the
-//      tests against the real PGX driver and create recording files in the
-//      testdata directory. This tests generation of recordings.
-//   2. Run the test without the "-record" flag. This will run the tests against
-//      the copyist driver that plays back the recordings created by step #1.
-//      This tests playback of recording.
-//
+//  1. Run the tests with the "-record" command-line flag. This will run the
+//     tests against the real PGX driver and create recording files in the
+//     testdata directory. This tests generation of recordings.
+//  2. Run the test without the "-record" flag. This will run the tests against
+//     the copyist driver that plays back the recordings created by step #1.
+//     This tests playback of recording.
 func TestMain(m *testing.M) {
 	commontest.RunAllTests(m, "pgx", commontest.PostgresDataSourceName, commontest.PostgresDockerArgs)
 }

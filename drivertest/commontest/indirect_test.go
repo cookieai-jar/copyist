@@ -19,7 +19,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/cockroachdb/copyist"
+	"github.com/cookieai-jar/copyist"
 )
 
 // indirectOpen is used with the TestIndirectOpen function to test calls to

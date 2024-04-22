@@ -18,7 +18,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/cockroachdb/copyist"
+	"github.com/cookieai-jar/copyist"
 )
 
 func TestQueryName(t *testing.T) {

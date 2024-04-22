@@ -21,12 +21,13 @@ import (
 	"io"
 	"testing"
 
-	"github.com/cockroachdb/copyist"
-	"github.com/cockroachdb/copyist/drivertest/commontest"
 	"github.com/fortytw2/leaktest"
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/lib/pq"
+
+	"github.com/cookieai-jar/copyist"
+	"github.com/cookieai-jar/copyist/drivertest/commontest"
 )
 
 // Arbitrarily use PQ driver for tests that aren't driver-specific.

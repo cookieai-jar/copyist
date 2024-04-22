@@ -16,15 +16,16 @@ package pqtest
 
 import (
 	"database/sql"
-	"github.com/cockroachdb/copyist"
-	"github.com/fortytw2/leaktest"
-	"github.com/stretchr/testify/require"
 	"testing"
 
-	"github.com/cockroachdb/copyist/drivertest/commontest"
+	"github.com/fortytw2/leaktest"
+	"github.com/stretchr/testify/require"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	_ "github.com/lib/pq"
+
+	"github.com/cookieai-jar/copyist"
+	"github.com/cookieai-jar/copyist/drivertest/commontest"
 )
 
 // TestMain runs tests that use multiple drivers within the same Copyist

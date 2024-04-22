@@ -22,11 +22,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cockroachdb/copyist"
-	"github.com/cockroachdb/copyist/drivertest/dockerdb"
 	"github.com/fortytw2/leaktest"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cookieai-jar/copyist"
+	"github.com/cookieai-jar/copyist/drivertest/dockerdb"
 )
 
 const (
