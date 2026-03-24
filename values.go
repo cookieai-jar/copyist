@@ -26,8 +26,6 @@ import (
 	"text/scanner"
 	"time"
 
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgproto3/v2"
 	"github.com/lib/pq"
 )
 
@@ -90,14 +88,20 @@ func formatValueWithType(val interface{}) string {
 		return fmt.Sprintf("%d:nil", nilType)
 	}
 
+	// Check for pgconn.PgError via reflection before the type switch,
+	// so we don't need to import pgconn (which transitively imports pgproto3/v2).
+	if resp, ok := tryExtractPgConnError(val); ok {
+		return fmt.Sprintf("%d:%s", pgConnErrorType, formatPgErrorResponse(&resp))
+	}
+
 	switch t := val.(type) {
+	// Local pgErrorResponse (returned by parsePgConnError during playback).
+	case *pgErrorResponse:
+		return fmt.Sprintf("%d:%s", pgConnErrorType, formatPgErrorResponse(t))
+
 	// Custom pq types.
 	case *pq.Error:
 		return fmt.Sprintf("%d:%s", pqErrorType, formatPqError(t))
-
-	// Custom pgx types.
-	case *pgconn.PgError:
-		return fmt.Sprintf("%d:%s", pgConnErrorType, formatPgConnError(t))
 
 	// Built-in Go types.
 	case string:
@@ -156,7 +160,7 @@ func formatValueWithType(val interface{}) string {
 // library to format the error using the Postgres wire protocol, and then
 // returns it as a quoted string.
 func formatPqError(pqErr *pq.Error) string {
-	resp := pgproto3.ErrorResponse{
+	resp := pgErrorResponse{
 		Severity:         pqErr.Severity,
 		Code:             string(pqErr.Code),
 		Message:          pqErr.Message,
@@ -176,8 +180,8 @@ func formatPqError(pqErr *pq.Error) string {
 		Routine:          pqErr.Routine,
 	}
 
-	// Encode using the pgproto3 library and skip the Error header bytes.
-	encoded, err := resp.Encode(nil)
+	// Encode using the wire protocol and skip the Error header bytes.
+	encoded, err := resp.encode(nil)
 	if err != nil {
 		return strconv.Quote(fmt.Sprintf("error in formatPqError: %s", err.Error()))
 	}
@@ -191,29 +195,9 @@ func formatPqError(pqErr *pq.Error) string {
 // inclusion in a copyist recording file. It does this by using the pgproto3
 // library to format the error using the Postgres wire protocol, and then
 // returns it as a quoted string.
-func formatPgConnError(pgxError *pgconn.PgError) string {
-	resp := pgproto3.ErrorResponse{
-		Severity:         pgxError.Severity,
-		Code:             pgxError.Code,
-		Message:          pgxError.Message,
-		Detail:           pgxError.Detail,
-		Hint:             pgxError.Hint,
-		Position:         pgxError.Position,
-		InternalPosition: pgxError.InternalPosition,
-		InternalQuery:    pgxError.InternalQuery,
-		Where:            pgxError.Where,
-		SchemaName:       pgxError.SchemaName,
-		TableName:        pgxError.TableName,
-		ColumnName:       pgxError.ColumnName,
-		DataTypeName:     pgxError.DataTypeName,
-		ConstraintName:   pgxError.ConstraintName,
-		File:             pgxError.File,
-		Line:             pgxError.Line,
-		Routine:          pgxError.Routine,
-	}
-
-	// Encode using the pgproto3 library and skip the Error header bytes.
-	encoded, err := resp.Encode(nil)
+func formatPgErrorResponse(resp *pgErrorResponse) string {
+	// Encode using the wire protocol and skip the Error header bytes.
+	encoded, err := resp.encode(nil)
 	if err != nil {
 		return strconv.Quote(fmt.Sprintf("error in formatPgConnError: %s", err.Error()))
 	}
@@ -328,8 +312,8 @@ func parsePqError(val string) (interface{}, error) {
 		return nil, err
 	}
 
-	var resp pgproto3.ErrorResponse
-	if err = resp.Decode([]byte(unquoted)); err != nil {
+	var resp pgErrorResponse
+	if err = resp.decode([]byte(unquoted)); err != nil {
 		return nil, err
 	}
 
@@ -363,12 +347,12 @@ func parsePgConnError(val string) (interface{}, error) {
 		return nil, err
 	}
 
-	var resp pgproto3.ErrorResponse
-	if err = resp.Decode([]byte(unquoted)); err != nil {
+	var resp pgErrorResponse
+	if err = resp.decode([]byte(unquoted)); err != nil {
 		return nil, err
 	}
 
-	return pgconn.ErrorResponseToPgError(&resp), nil
+	return &resp, nil
 }
 
 // deepCopyValue makes a deep copy of the given value. It is used to ensure that
